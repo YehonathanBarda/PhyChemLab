@@ -72,13 +72,23 @@ def ellipse_line_intersection(line, ellipse):
 
     return intersection_points
 
-def surface_tension(image_path):
+def surface_tension(image_path,delta_value = 4600, edge = 20):
+    if delta_value < 0:
+        raise ValueError('Delta value must be a non-negative number')
+    if type(edge) != int:
+        raise ValueError('Edges must be an integer')
+    if edge < 0:
+        raise ValueError('Edges must be a non-negative number')
+    else:
+        a= edge
+    
+
     # Load the image
     image = cv2.imread(image_path)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     
     # Apply Canny edge detector
-    edges = cv2.Canny(gray, 80, 101)
+    edges = cv2.Canny(gray, 90, 100)
     
     # Find contours
     contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -87,8 +97,9 @@ def surface_tension(image_path):
     largest_contour = max(contours, key=cv2.contourArea)
     
     # Find the leftmost and rightmost points of the largest contour (surface edge)
-    leftmost_points = largest_contour[np.argsort(largest_contour[:, :, 0].flatten())[:40]]
-    rightmost_points = largest_contour[np.argsort(largest_contour[:, :, 0].flatten())[-40:]]
+
+    leftmost_points = largest_contour[np.argsort(largest_contour[:, :, 0].flatten())[:edge]]
+    rightmost_points = largest_contour[np.argsort(largest_contour[:, :, 0].flatten())[-edge:]]
     
     # Combine the leftmost and rightmost points
     surface_points = np.vstack((leftmost_points, rightmost_points))
@@ -97,15 +108,16 @@ def surface_tension(image_path):
     [vx, vy, x, y] = cv2.fitLine(surface_points, cv2.DIST_L2, 0, 0.01, 0.01)
 
     # Draw the contours
-    if True:
-        cv2.drawContours(image, contours, -1, (0, 255, 0), 2)
+    if False: # Set to True to display the primery contours 
+        # cv2.drawContours(image, contours, -1, (0, 0, 255), 2)
+        cv2.drawContours(image, [largest_contour], -1, (0, 255, 0), 2)
+        cv2.drawContours(image, leftmost_points, -1, (255, 90, 90), 5)
+        cv2.drawContours(image, rightmost_points, -1, (255, 90, 90), 5)
+
         cv2.imshow('Drop Outline and Surface', image)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-    
-    # Define delta value
-    delta_value = 4200
     
     # Calculate the y-values of the surface line at each x-coordinate of the contour
     surface_y_values = (vx / vy) * (largest_contour[:, :, 1] - x) + y
@@ -177,5 +189,5 @@ def surface_tension(image_path):
         
 
 if __name__ == '__main__':
-    image_path = r"C:\Users\yaniv\Yehonathan TAU\PhyChemLab\surface tension imges\copper.jpg"
-    surface_tension(image_path)
+    image_path = r"C:\Users\yaniv\Yehonathan TAU\PhyChemLab\surface tension imges\teflon3.jpg"
+    surface_tension(image_path, delta_value = 4200, edge = 40)

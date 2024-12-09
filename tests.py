@@ -1,5 +1,5 @@
 import numpy as np
-x = (1,2)
-y = (3,4)
-z = tuple(np.array(x) + np.array(y))
-print(z)
+x = np.array([1, 2, 3, 4, 5])
+a = 2
+print(x[a:])
+print(len(1))
